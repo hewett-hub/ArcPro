@@ -142,6 +142,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     gis = GIS(profile=args.profile)
+    # Valid date range values: 24H,7D,14D,30D,60D,6M,1Y
     usage_data = get_group_items_usage('ce3382520b4342489f4822430e03603b', date_range='14D')
     tbl = UsageTable(usage_tracking_url)
     tbl.update_records()
