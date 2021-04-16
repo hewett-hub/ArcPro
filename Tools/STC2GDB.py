@@ -12,7 +12,7 @@ def parse_values(values_str):
 
 
 def parse_t0(t0_str):
-    return datetime.datetime.strptime(t0_str, '"YYYY/mm/dd hh:MM:SS",')
+    return datetime.datetime.strptime(t0_str, '"%Y/%m/%d %H:%M:%S",')
 
 
 def parse_time_increment(intv_str, unit_str):
@@ -20,7 +20,9 @@ def parse_time_increment(intv_str, unit_str):
 
     if unit_str == '"YEARS",':
         return relativedelta(years=interval)
-    if unit_str == '"WEEKS",':
+    elif unit_str == '"MONTHS",':
+        return relativedelta(months=interval)
+    elif unit_str == '"WEEKS",':
         return relativedelta(weeks=interval)
     elif unit_str == '"DAYS",':
         return relativedelta(days=interval)
@@ -37,7 +39,7 @@ def add_items(chart_table, loc_id, name, val_list, base_time, interval):
     with arcpy.da.InsertCursor(chart_table, fields) as cursor:
         for item in val_list:
             row = [loc_id, row_time, name, item]
-            cursor.insert_row(row)
+            cursor.insertRow(row)
             row_time += interval
 
     # return last row time for use as start time in predicted items.
@@ -48,7 +50,7 @@ def add_chart_values(chart_table, loc_id, html_str):
     arcpy.AddMessage(html_str)
 
     # split html str into lines
-    lines = html_str.split()
+    lines = html_str.split('\n')
 
     # get html var lines
     named_lines = {}
@@ -62,9 +64,9 @@ def add_chart_values(chart_table, loc_id, html_str):
     ts_vals = parse_values(named_lines['var ts'])
     base_time = parse_t0(named_lines['t0'])
     time_increment = parse_time_increment(named_lines['intv'], named_lines['unit'])
-    fit_vals = parse_values(named_lines.get('fit'))
-    forecast_vals = parse_values(named_lines.get('forecast'))
-    conf_int = parse_values(named_lines.get('conf_int'))
+    fit_vals = parse_values(named_lines.get('fit', None))
+    forecast_vals = parse_values(named_lines.get('forecast', None))
+    conf_int = parse_values(named_lines.get('conf_int', None))
 
     # break out lo and hi conf values.
     if conf_int:
@@ -121,8 +123,8 @@ def fill_chart_table(stc_fc, chart_table):
 
 
 if __name__ == "__main__":
-    workspace_in = arcpy.GetParameterAsText(0)
-    gdb_name_in = arcpy.GetParameterAsText(1)
-    stc_fc_in = arcpy.GetParameterAsText(2)
+    workspace_in = r'C:\tmp\LifeSpan_tmp' # arcpy.GetParameterAsText(0)
+    gdb_name_in = 'stc_test' # arcpy.GetParameterAsText(1)
+    stc_fc_in = r'L:\Work\Papers\NationalHotspot\NatHotSpots_06_18\AbsoluteAnalyses_Inc.gdb\HotZoneCurveFit_Absolute_Incidents_Away_Tot_P_100_2k_6' # arcpy.GetParameterAsText(2)
 
     create_database(workspace=workspace_in, name=gdb_name_in, stc_fc=stc_fc_in)
